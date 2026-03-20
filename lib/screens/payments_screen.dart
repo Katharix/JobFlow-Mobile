@@ -63,6 +63,10 @@ class _PaymentsScreenState extends State<PaymentsScreen> {
 
     setState(() => _isSubmitting = false);
 
+    if (!mounted) {
+      return;
+    }
+
     if (result == null || result.url == null || result.url!.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Unable to start payment checkout.')),
@@ -71,7 +75,13 @@ class _PaymentsScreenState extends State<PaymentsScreen> {
     }
 
     final uri = Uri.tryParse(result.url!);
-    if (uri == null || !await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+    final launched = uri != null && await launchUrl(uri, mode: LaunchMode.externalApplication);
+
+    if (!mounted) {
+      return;
+    }
+
+    if (!launched) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Unable to open payment link.')),
       );

@@ -45,7 +45,7 @@ class AppTheme {
       ),
       navigationBarTheme: NavigationBarThemeData(
         backgroundColor: Colors.white,
-        indicatorColor: primary.withOpacity(0.12),
+        indicatorColor: primary.withAlpha((0.12 * 255).round()),
         labelTextStyle: WidgetStatePropertyAll(
           GoogleFonts.manrope(fontWeight: FontWeight.w600, fontSize: 12, color: ink),
         ),
@@ -82,7 +82,7 @@ class AppTheme {
       ),
       chipTheme: base.chipTheme.copyWith(
         backgroundColor: sand,
-        selectedColor: primary.withOpacity(0.15),
+        selectedColor: primary.withAlpha((0.15 * 255).round()),
         labelStyle: GoogleFonts.manrope(fontSize: 12, color: ink),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       ),

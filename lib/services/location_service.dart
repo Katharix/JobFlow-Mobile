@@ -7,7 +7,8 @@ class LocationService {
       return null;
     }
 
-    return Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+    const settings = LocationSettings(accuracy: LocationAccuracy.high);
+    return Geolocator.getCurrentPosition(locationSettings: settings);
   }
 
   Future<bool> _ensurePermission() async {

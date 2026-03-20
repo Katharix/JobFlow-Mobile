@@ -154,8 +154,11 @@ class _MessagesScreenState extends State<MessagesScreen> {
                               padding: const EdgeInsets.all(12),
                               decoration: BoxDecoration(
                                 color: message.isMine
-                                    ? Theme.of(context).colorScheme.primary.withOpacity(0.12)
-                                    : Theme.of(context).colorScheme.surfaceVariant,
+                                  ? Theme.of(context)
+                                    .colorScheme
+                                    .primary
+                                    .withAlpha((0.12 * 255).round())
+                                  : Theme.of(context).colorScheme.surfaceContainerHighest,
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: Text(message.content),
