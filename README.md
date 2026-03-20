@@ -1,5 +1,7 @@
 # JobFlow Mobile
 
+[![CI](https://github.com/bllr777/JobFlow-Mobile/actions/workflows/ci.yml/badge.svg)](https://github.com/bllr777/JobFlow-Mobile/actions/workflows/ci.yml)
+
 Flutter app for employee workflows: assignments, directions, ETA updates, payments, and org messaging.
 
 ## Setup
