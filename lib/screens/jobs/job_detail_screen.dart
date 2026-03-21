@@ -163,30 +163,30 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
       jobId: widget.assignment.jobId,
       message: message,
     );
+    if (!mounted) return;
 
-    if (mounted) {
-      setState(() => _sendingUpdate = false);
-      if (success) {
-        _noteController.clear();
-        await _loadRecentUpdates();
-      } else {
-        await _jobUpdateQueue.enqueue(JobUpdateQueueItem(
-          id: DateTime.now().microsecondsSinceEpoch.toString(),
-          jobId: widget.assignment.jobId,
-          type: JobUpdateType.note,
-          message: message,
-          createdAt: DateTime.now(),
-        ));
-        await _refreshQueueCount();
-      }
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            success ? 'Update sent to client.' : 'Offline: update queued for sync.',
-          ),
-        ),
-      );
+    setState(() => _sendingUpdate = false);
+    if (success) {
+      _noteController.clear();
+      await _loadRecentUpdates();
+    } else {
+      await _jobUpdateQueue.enqueue(JobUpdateQueueItem(
+        id: DateTime.now().microsecondsSinceEpoch.toString(),
+        jobId: widget.assignment.jobId,
+        type: JobUpdateType.note,
+        message: message,
+        createdAt: DateTime.now(),
+      ));
+      await _refreshQueueCount();
     }
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          success ? 'Update sent to client.' : 'Offline: update queued for sync.',
+        ),
+      ),
+    );
   }
 
   Future<void> _sendPhotoUpdate(ImageSource source) async {
@@ -200,29 +200,29 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
       jobId: widget.assignment.jobId,
       photo: photo,
     );
+    if (!mounted) return;
 
-    if (mounted) {
-      setState(() => _sendingUpdate = false);
-      if (success) {
-        await _loadRecentUpdates();
-      } else {
-        await _jobUpdateQueue.enqueue(JobUpdateQueueItem(
-          id: DateTime.now().microsecondsSinceEpoch.toString(),
-          jobId: widget.assignment.jobId,
-          type: JobUpdateType.photo,
-          filePath: photo.path,
-          createdAt: DateTime.now(),
-        ));
-        await _refreshQueueCount();
-      }
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            success ? 'Photo shared with client.' : 'Offline: photo queued for sync.',
-          ),
-        ),
-      );
+    setState(() => _sendingUpdate = false);
+    if (success) {
+      await _loadRecentUpdates();
+    } else {
+      await _jobUpdateQueue.enqueue(JobUpdateQueueItem(
+        id: DateTime.now().microsecondsSinceEpoch.toString(),
+        jobId: widget.assignment.jobId,
+        type: JobUpdateType.photo,
+        filePath: photo.path,
+        createdAt: DateTime.now(),
+      ));
+      await _refreshQueueCount();
     }
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          success ? 'Photo shared with client.' : 'Offline: photo queued for sync.',
+        ),
+      ),
+    );
   }
 
   Future<void> _sendStatusUpdate(int status, String label) async {
@@ -233,29 +233,29 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
       jobId: widget.assignment.jobId,
       status: status,
     );
+    if (!mounted) return;
 
-    if (mounted) {
-      setState(() => _sendingUpdate = false);
-      if (success) {
-        await _loadRecentUpdates();
-      } else {
-        await _jobUpdateQueue.enqueue(JobUpdateQueueItem(
-          id: DateTime.now().microsecondsSinceEpoch.toString(),
-          jobId: widget.assignment.jobId,
-          type: JobUpdateType.statusChange,
-          status: status,
-          createdAt: DateTime.now(),
-        ));
-        await _refreshQueueCount();
-      }
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            success ? 'Client updated: $label.' : 'Offline: status queued for sync.',
-          ),
-        ),
-      );
+    setState(() => _sendingUpdate = false);
+    if (success) {
+      await _loadRecentUpdates();
+    } else {
+      await _jobUpdateQueue.enqueue(JobUpdateQueueItem(
+        id: DateTime.now().microsecondsSinceEpoch.toString(),
+        jobId: widget.assignment.jobId,
+        type: JobUpdateType.statusChange,
+        status: status,
+        createdAt: DateTime.now(),
+      ));
+      await _refreshQueueCount();
     }
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          success ? 'Client updated: $label.' : 'Offline: status queued for sync.',
+        ),
+      ),
+    );
   }
 
   Future<void> _flushQueuedUpdates() async {
