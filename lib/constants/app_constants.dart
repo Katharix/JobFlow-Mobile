@@ -7,5 +7,6 @@ class AppConstants {
   static const chatMessagesPath = '/api/chat/messages';
   static const chatReadPath = '/api/chat/conversations';
   static const paymentsCheckoutPath = '/api/payments/checkout';
+  static const paymentsDepositPath = '/api/payments/deposit';
   static const googleMapsDirectionsBaseUrl = 'https://www.google.com/maps/dir/?api=1';
 }
