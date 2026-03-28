@@ -1,0 +1,9 @@
+{
+  "seededEmployee": {
+    "email": "employee+e2e@example.test",
+    "passwordSource": "CI secret or local secure store"
+  },
+  "api": {
+    "baseUrl": "Provided via --dart-define=JOBFLOW_API_BASE_URL"
+  }
+}
