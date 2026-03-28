@@ -29,5 +29,8 @@ jobs:
       - name: Test
         run: flutter test
 
+      - name: Integration Test
+        run: flutter test integration_test
+
       - name: Build Android (debug)
         run: flutter build apk --debug
