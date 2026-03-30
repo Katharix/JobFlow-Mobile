@@ -25,49 +25,22 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Generate a token
-        id: generate-token
-        uses: actions/create-github-app-token@v1
-        with:
-          app-id: ${{ vars.RELEASE_BOT_APP_ID }}
-          private-key: ${{ secrets.RELEASE_BOT_PRIVATE_KEY }}
-
-      - name: Get App Version Info
-        id: get-app-version-info
-        uses: actions/github-script@v7
-        with:
-          github-token: ${{ steps.generate-token.outputs.token }}
-          script: |
-            const { owner, repo } = context.repo;
-            const names = [
-              'MOBILE_DEV_VERSION',
-              'MOBILE_STAGING_VERSION',
-              'MOBILE_PRODUCTION_VERSION'
-            ];
-
-            const values = {};
-            for (const name of names) {
-              try {
-                const result = await github.rest.actions.getRepoVariable({ owner, repo, name });
-                values[name] = result.data.value;
-              } catch (error) {
-                if (error.status === 404) {
-                  values[name] = 'n/a';
-                } else {
-                  throw error;
-                }
-              }
-            }
-
-            return [
-              '## Mobile Environment Versions',
-              '',
-              '| Environment | Deployed version |',
-              '| --- | --- |',
-              `| Development | ${values.MOBILE_DEV_VERSION} |`,
-              `| Staging | ${values.MOBILE_STAGING_VERSION} |`,
-              `| Production | ${values.MOBILE_PRODUCTION_VERSION} |`
-            ].join('\n');
-
       - name: Print Info
-        run: printf '%s\n' "${{ steps.get-app-version-info.outputs.result }}" >> "$GITHUB_STEP_SUMMARY"
+        env:
+          DEV_VERSION: ${{ vars.MOBILE_DEV_VERSION }}
+          STAGING_VERSION: ${{ vars.MOBILE_STAGING_VERSION }}
+          PROD_VERSION: ${{ vars.MOBILE_PRODUCTION_VERSION }}
+        run: |
+          [ -n "$DEV_VERSION" ] || DEV_VERSION="n/a"
+          [ -n "$STAGING_VERSION" ] || STAGING_VERSION="n/a"
+          [ -n "$PROD_VERSION" ] || PROD_VERSION="n/a"
+
+          {
+            echo "## Mobile Environment Versions"
+            echo
+            echo "| Environment | Deployed version |"
+            echo "| --- | --- |"
+            echo "| Development | $DEV_VERSION |"
+            echo "| Staging | $STAGING_VERSION |"
+            echo "| Production | $PROD_VERSION |"
+          } >> "$GITHUB_STEP_SUMMARY"
