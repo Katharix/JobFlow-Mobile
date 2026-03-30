@@ -7,8 +7,8 @@ on:
   workflow_dispatch:
     inputs:
       release_tag:
-        description: Optional release tag to deploy
-        required: false
+        description: "Release tag to deploy (format: release-*)"
+        required: true
         type: string
 
 permissions:

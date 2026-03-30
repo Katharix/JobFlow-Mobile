@@ -58,7 +58,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
         run: |
-          tag="release-$(date -u +'%Y.%m.%d')-${GITHUB_RUN_NUMBER}"
+          tag="release-$(date -u +'%Y.%m.%d')-${GITHUB_RUN_NUMBER}.${GITHUB_RUN_ATTEMPT}"
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git tag -a "$tag" -m "Mobile release $tag"
