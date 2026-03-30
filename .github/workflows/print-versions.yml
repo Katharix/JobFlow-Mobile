@@ -27,11 +27,9 @@ jobs:
 
       - name: Print Info
         env:
-          DEV_VERSION: ${{ vars.MOBILE_DEV_VERSION }}
           STAGING_VERSION: ${{ vars.MOBILE_STAGING_VERSION }}
           PROD_VERSION: ${{ vars.MOBILE_PRODUCTION_VERSION }}
         run: |
-          [ -n "$DEV_VERSION" ] || DEV_VERSION="n/a"
           [ -n "$STAGING_VERSION" ] || STAGING_VERSION="n/a"
           [ -n "$PROD_VERSION" ] || PROD_VERSION="n/a"
 
@@ -40,7 +38,6 @@ jobs:
             echo
             echo "| Environment | Deployed version |"
             echo "| --- | --- |"
-            echo "| Development | $DEV_VERSION |"
             echo "| Staging | $STAGING_VERSION |"
             echo "| Production | $PROD_VERSION |"
           } >> "$GITHUB_STEP_SUMMARY"
