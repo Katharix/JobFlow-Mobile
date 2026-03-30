@@ -11,39 +11,10 @@ permissions:
   contents: read
 
 jobs:
-  prod-approval:
-    if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main' }}
-    name: Manual Approval For Production
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      issues: write
-
-    steps:
-      - name: Validate PROD_APPROVERS variable
-        env:
-          PROD_APPROVERS: ${{ vars.PROD_APPROVERS }}
-        run: |
-          if [ -z "$PROD_APPROVERS" ]; then
-            echo "Set repository variable PROD_APPROVERS to a comma-separated list of GitHub usernames allowed to approve production deploys."
-            exit 1
-          fi
-
-      - name: Wait for manual approval
-        uses: trstringer/manual-approval@v1
-        with:
-          secret: ${{ github.token }}
-          approvers: ${{ vars.PROD_APPROVERS }}
-          minimum-approvals: 1
-          issue-title: "Approve Mobile production release tag"
-          issue-body: "Review main branch CI and approve creation of a production release tag by commenting 'approve'."
-          exclude-workflow-initiator-as-approver: false
-
   create-release-tag:
     if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main' }}
     name: Create Release Tag
     runs-on: ubuntu-latest
-    needs: prod-approval
     permissions:
       contents: write
 

@@ -33,7 +33,7 @@ jobs:
         run: flutter test
 
       - name: Integration Test
-        run: flutter test integration_test
+        run: flutter test integration_test -d linux
 
       - name: Build Android (debug)
         run: flutter build apk --debug

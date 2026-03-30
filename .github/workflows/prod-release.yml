@@ -55,10 +55,38 @@ jobs:
           name: android-release-aab
           path: build/app/outputs/bundle/release/app-release.aab
 
+  prod-approval:
+    name: Manual Approval For Production
+    runs-on: ubuntu-latest
+    needs: build-release
+    permissions:
+      contents: read
+      issues: write
+
+    steps:
+      - name: Validate PROD_APPROVERS variable
+        env:
+          PROD_APPROVERS: ${{ vars.PROD_APPROVERS }}
+        run: |
+          if [ -z "$PROD_APPROVERS" ]; then
+            echo "Set repository variable PROD_APPROVERS to a comma-separated list of GitHub usernames allowed to approve production deploys."
+            exit 1
+          fi
+
+      - name: Wait for manual approval
+        uses: trstringer/manual-approval@v1
+        with:
+          secret: ${{ github.token }}
+          approvers: ${{ vars.PROD_APPROVERS }}
+          minimum-approvals: 1
+          issue-title: "Approve Mobile production deploy"
+          issue-body: "Release tag is ready. Approve this production deployment by commenting 'approve'."
+          exclude-workflow-initiator-as-approver: false
+
   deploy-prod:
     name: Deploy to Production
     runs-on: ubuntu-latest
-    needs: build-release
+    needs: prod-approval
     permissions:
       contents: read
       actions: read
