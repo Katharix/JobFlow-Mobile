@@ -1,0 +1,73 @@
+name: Print Versions
+
+on:
+  workflow_dispatch:
+  workflow_run:
+    types: [completed]
+    workflows:
+      - CI
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  print-version:
+    name: Print App Versions
+    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    environment: Version Table
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Generate a token
+        id: generate-token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ vars.RELEASE_BOT_APP_ID }}
+          private-key: ${{ secrets.RELEASE_BOT_PRIVATE_KEY }}
+
+      - name: Get App Version Info
+        id: get-app-version-info
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ steps.generate-token.outputs.token }}
+          script: |
+            const { owner, repo } = context.repo;
+            const names = [
+              'MOBILE_DEV_VERSION',
+              'MOBILE_STAGING_VERSION',
+              'MOBILE_PRODUCTION_VERSION'
+            ];
+
+            const values = {};
+            for (const name of names) {
+              try {
+                const result = await github.rest.actions.getRepoVariable({ owner, repo, name });
+                values[name] = result.data.value;
+              } catch (error) {
+                if (error.status === 404) {
+                  values[name] = 'n/a';
+                } else {
+                  throw error;
+                }
+              }
+            }
+
+            return [
+              '## Mobile Environment Versions',
+              '',
+              '| Environment | Deployed version |',
+              '| --- | --- |',
+              `| Development | ${values.MOBILE_DEV_VERSION} |`,
+              `| Staging | ${values.MOBILE_STAGING_VERSION} |`,
+              `| Production | ${values.MOBILE_PRODUCTION_VERSION} |`
+            ].join('\n');
+
+      - name: Print Info
+        run: printf '%s\n' "${{ steps.get-app-version-info.outputs.result }}" >> "$GITHUB_STEP_SUMMARY"

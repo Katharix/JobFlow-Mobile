@@ -60,4 +60,31 @@ class PaymentService {
     final data = jsonDecode(response.body) as Map<String, dynamic>;
     return PaymentCheckoutResult.fromApi(data);
   }
+
+  Future<PaymentCheckoutResult?> createDeposit({
+    required String invoiceId,
+    required double amount,
+    String? organizationClientId,
+    String productName = 'Deposit',
+  }) async {
+    if (!AppSession.isAuthenticated) {
+      return null;
+    }
+
+    final body = <String, dynamic>{
+      'invoiceId': invoiceId,
+      'amount': amount,
+      'productName': productName,
+      if (organizationClientId != null && organizationClientId.isNotEmpty)
+        'organizationClientId': organizationClientId,
+    };
+
+    final response = await _apiClient.postJson(AppConstants.paymentsDepositPath, body);
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      return null;
+    }
+
+    final data = jsonDecode(response.body) as Map<String, dynamic>;
+    return PaymentCheckoutResult.fromApi(data);
+  }
 }
