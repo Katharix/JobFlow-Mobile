@@ -37,7 +37,7 @@ jobs:
           minimum-approvals: 1
           issue-title: "Approve Mobile production release tag"
           issue-body: "Review main branch CI and approve creation of a production release tag by commenting 'approve'."
-          exclude-workflow-initiator-as-approver: true
+          exclude-workflow-initiator-as-approver: false
 
   create-release-tag:
     if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main' }}
