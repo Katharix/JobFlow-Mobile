@@ -14,6 +14,7 @@ concurrency:
 permissions:
   contents: read
   actions: read
+  pull-requests: read
 
 jobs:
   print-version:
@@ -25,49 +26,87 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Generate a token
-        id: generate-token
-        uses: actions/create-github-app-token@v1
-        with:
-          app-id: ${{ vars.RELEASE_BOT_APP_ID }}
-          private-key: ${{ secrets.RELEASE_BOT_PRIVATE_KEY }}
-
-      - name: Get App Version Info
-        id: get-app-version-info
+      - name: Build deployment table
+        id: build-table
         uses: actions/github-script@v7
         with:
-          github-token: ${{ steps.generate-token.outputs.token }}
           script: |
             const { owner, repo } = context.repo;
-            const names = [
-              'MOBILE_DEV_VERSION',
-              'MOBILE_STAGING_VERSION',
-              'MOBILE_PRODUCTION_VERSION'
-            ];
 
-            const values = {};
-            for (const name of names) {
-              try {
-                const result = await github.rest.actions.getRepoVariable({ owner, repo, name });
-                values[name] = result.data.value;
-              } catch (error) {
-                if (error.status === 404) {
-                  values[name] = 'n/a';
-                } else {
-                  throw error;
-                }
+            const toUtc = (iso) => {
+              if (!iso) return 'n/a';
+              return new Date(iso).toISOString().replace('T', ' ').replace('.000Z', ' UTC');
+            };
+
+            const formatRunCell = (run) => {
+              if (!run) return 'n/a';
+
+              const when = run.conclusion === 'success'
+                ? (run.updated_at || run.run_started_at || run.created_at)
+                : (run.run_started_at || run.created_at || run.updated_at);
+
+              const state = run.conclusion === 'success'
+                ? 'Deployed'
+                : (run.status === 'waiting' ? 'Awaiting approval' : (run.status || run.conclusion || 'Unknown'));
+
+              return `[${state} - ${toUtc(when)}](${run.html_url})`;
+            };
+
+            const workflows = await github.paginate(github.rest.actions.listRepoWorkflows, {
+              owner,
+              repo,
+              per_page: 100
+            });
+
+            const findWorkflow = (name) => workflows.find((w) => w.path && w.path.endsWith(name));
+            const stagingWf = findWorkflow('ci.yml');
+            const prodWf = findWorkflow('prod-release.yml');
+
+            const latestRunFor = async (workflowId) => {
+              if (!workflowId) return null;
+              const response = await github.rest.actions.listWorkflowRuns({
+                owner,
+                repo,
+                workflow_id: workflowId,
+                per_page: 10
+              });
+              return response.data.workflow_runs && response.data.workflow_runs.length > 0
+                ? response.data.workflow_runs[0]
+                : null;
+            };
+
+            const stagingRun = await latestRunFor(stagingWf && stagingWf.id);
+            const prodRun = await latestRunFor(prodWf && prodWf.id);
+
+            const sourceSha =
+              context.payload.workflow_run?.head_sha ||
+              context.sha ||
+              stagingRun?.head_sha ||
+              prodRun?.head_sha;
+
+            let prCell = 'n/a';
+            if (sourceSha) {
+              const prs = await github.rest.repos.listPullRequestsAssociatedWithCommit({
+                owner,
+                repo,
+                commit_sha: sourceSha
+              });
+
+              if (prs.data.length > 0) {
+                const pr = prs.data[0];
+                prCell = `[#${pr.number}](${pr.html_url})`;
               }
             }
 
-            return [
-              '## Mobile Environment Versions',
+            const table = [
+              '## Mobile Deployment Table',
               '',
-              '| Environment | Deployed version |',
-              '| --- | --- |',
-              `| Development | ${values.MOBILE_DEV_VERSION} |`,
-              `| Staging | ${values.MOBILE_STAGING_VERSION} |`,
-              `| Production | ${values.MOBILE_PRODUCTION_VERSION} |`
+              '| PR | Staging | Production |',
+              '| --- | --- | --- |',
+              `| ${prCell} | ${formatRunCell(stagingRun)} | ${formatRunCell(prodRun)} |`
             ].join('\n');
 
+            core.setOutput('table', table);
+
       - name: Print Info
-        run: printf '%s\n' "${{ steps.get-app-version-info.outputs.result }}" >> "$GITHUB_STEP_SUMMARY"
+        run: printf '%s\n' "${{ steps.build-table.outputs.table }}" >> "$GITHUB_STEP_SUMMARY"
